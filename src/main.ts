@@ -141,6 +141,86 @@ function comprobarReservaRechazada(
   );
 }
 
+// Conecta los botones con la misma matriz y las funciones usadas en consola.
+function iniciarInterfaz(): void {
+  const mapa = document.querySelector<HTMLDivElement>("#asientos");
+  const columnas = document.querySelector<HTMLDivElement>("#columnas");
+  const disponibles = document.querySelector<HTMLElement>("#disponibles");
+  const ocupados = document.querySelector<HTMLElement>("#ocupados");
+  const mensaje = document.querySelector<HTMLParagraphElement>("#mensaje");
+  const buscar = document.querySelector<HTMLButtonElement>("#buscar-par");
+  if (!mapa || !columnas || !disponibles || !ocupados || !mensaje || !buscar) {
+    return;
+  }
+
+  const sala = inicializarSala();
+
+  // Actualiza los botones existentes para no reconstruir el mapa tras cada reserva.
+  function actualizarMapa(): void {
+    const botones = mapa!.querySelectorAll<HTMLButtonElement>("button");
+    for (let indice = 0; indice < botones.length; indice++) {
+      const fila = Math.floor(indice / NUMERO_COLUMNAS);
+      const columna = indice % NUMERO_COLUMNAS;
+      const libre = sala[fila][columna] === 0;
+      const boton = botones[indice];
+      boton.textContent = `${columna + 1}\n${libre ? "L" : "X"}`;
+      boton.disabled = !libre;
+      boton.setAttribute("aria-label", `Fila ${fila + 1}, columna ${columna + 1}, ${libre ? "libre" : "ocupado"}`);
+      boton.classList.remove("asiento-sugerido");
+    }
+    const conteos = contarAsientos(sala);
+    ocupados!.textContent = String(conteos[0]);
+    disponibles!.textContent = String(conteos[1]);
+  }
+
+  const etiquetaFila = document.createElement("span");
+  etiquetaFila.textContent = "F/C";
+  etiquetaFila.className = "coordenada";
+  columnas.append(etiquetaFila);
+  for (let columna = 1; columna <= NUMERO_COLUMNAS; columna++) {
+    const etiqueta = document.createElement("span");
+    etiqueta.textContent = String(columna);
+    etiqueta.className = "coordenada";
+    columnas.append(etiqueta);
+  }
+
+  for (let fila = 0; fila < NUMERO_FILAS; fila++) {
+    const etiqueta = document.createElement("span");
+    etiqueta.textContent = String(fila + 1);
+    etiqueta.className = "coordenada";
+    etiqueta.setAttribute("aria-label", `Fila ${fila + 1}`);
+    mapa.append(etiqueta);
+    for (let columna = 0; columna < NUMERO_COLUMNAS; columna++) {
+      const boton = document.createElement("button");
+      boton.type = "button";
+      boton.className = "asiento";
+      boton.addEventListener("click", () => {
+        mensaje.textContent = reservarAsiento(sala, fila + 1, columna + 1);
+        actualizarMapa();
+      });
+      mapa.append(boton);
+    }
+  }
+
+  buscar.addEventListener("click", () => {
+    actualizarMapa();
+    const par = buscarAsientosContiguos(sala);
+    if (par === null) {
+      mensaje.textContent = "No hay dos asientos juntos disponibles en la misma fila.";
+      return;
+    }
+    mensaje.textContent = `Par disponible: fila ${par[0][0]}, columnas ${par[0][1]} y ${par[1][1]}. Sin reservar.`;
+    const botones = mapa.querySelectorAll<HTMLButtonElement>("button");
+    for (let indice = 0; indice < par.length; indice++) {
+      botones[(par[indice][0] - 1) * NUMERO_COLUMNAS + par[indice][1] - 1].classList.add("asiento-sugerido");
+    }
+  });
+  actualizarMapa();
+}
+
+if (typeof document !== "undefined") {
+  import("./style.css").then(() => iniciarInterfaz());
+} else {
 // Escenario 1: una sala nueva tiene los 80 asientos disponibles.
 const salaVacia = inicializarSala();
 comprobarEscenario("1. Sala vacia", salaVacia, 0, 80, [[1, 1], [1, 2]]);
@@ -201,5 +281,6 @@ comprobarReservaRechazada(
   "El asiento de la fila 8, columna 10 ya esta ocupado."
 );
 comprobarEscenario("4. Sala llena", salaLlena, 80, 0, null);
+}
 
 export {};

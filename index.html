@@ -1,26 +1,54 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hello World with Typescript</title>
+    <meta name="theme-color" content="#17624b" />
+    <title>Cinema Seat Manager | Sala 01</title>
   </head>
-  <body class="min-h-screen bg-slate-100 text-slate-900">
-    <main class="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center gap-6 p-6">
-      <h1 class="text-4xl font-bold tracking-tight">Hello World with Typescript</h1>
+  <body class="min-h-screen">
+    <header class="border-b border-neutral-200 bg-white">
+      <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6 sm:px-8">
+        <div>
+          <p class="marca mb-1 text-xs font-bold uppercase">Cinema Seat Manager</p>
+          <h1 class="titulo text-3xl sm:text-4xl">Tu lugar en la sala.</h1>
+        </div>
+        <p class="text-sm text-neutral-600">Sala <strong class="text-neutral-900">01</strong> / 80 asientos</p>
+      </div>
+    </header>
 
-      <section class="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <img
-          src="/rigo-baby.jpg"
-          alt="Hello Rigo"
-          class="h-64 w-full bg-slate-50 object-contain p-2"
-        />
-        <div class="p-5">
-          <h2 class="text-xl font-semibold text-slate-900">Hello Rigo</h2>
-          <p id="app" class="mt-2 text-sm text-slate-600"></p>
+    <main class="mx-auto grid max-w-6xl gap-10 px-3 py-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_260px] lg:py-12">
+      <section class="min-w-0" aria-labelledby="mapa-titulo">
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <h2 id="mapa-titulo" class="text-lg font-bold">Mapa de asientos</h2>
+          <ul class="flex flex-wrap gap-4 text-xs" aria-label="Leyenda de asientos">
+            <li class="flex items-center gap-2"><span class="muestra libre" aria-hidden="true">L</span> Libre</li>
+            <li class="flex items-center gap-2"><span class="muestra ocupado" aria-hidden="true">X</span> Ocupado</li>
+            <li class="flex items-center gap-2"><span class="muestra sugerido" aria-hidden="true"></span> Par encontrado</li>
+          </ul>
+        </div>
+        <div class="auditorio">
+          <div class="pantalla" aria-hidden="true">PANTALLA</div>
+          <div id="columnas" class="rejilla columnas" aria-hidden="true"></div>
+          <div id="asientos" class="rejilla" role="group" aria-label="Asientos de la sala 01, por fila y columna"></div>
+          <p class="mt-5 text-center text-xs text-neutral-500" aria-hidden="true">SALA 01</p>
         </div>
       </section>
+
+      <aside class="border-t border-neutral-300 pt-6 lg:border-l lg:border-t-0 lg:pl-7 lg:pt-0" aria-labelledby="resumen-titulo">
+        <h2 id="resumen-titulo" class="mb-5 text-lg font-bold">Estado de la sala</h2>
+        <dl class="mb-7 grid grid-cols-2 gap-4 border-b border-neutral-300 pb-6">
+          <div><dt class="mb-2 text-sm text-neutral-600">Disponibles</dt><dd id="disponibles" class="conteo text-4xl">80</dd></div>
+          <div><dt class="mb-2 text-sm text-neutral-600">Ocupados</dt><dd id="ocupados" class="text-4xl">0</dd></div>
+        </dl>
+        <button id="buscar-par" type="button" class="boton-buscar flex min-h-12 w-full items-center justify-center gap-2 rounded-md px-4 py-3 text-sm font-bold">
+          <span aria-hidden="true" class="text-xl">&#8981;</span> Buscar dos asientos juntos
+        </button>
+        <p id="mensaje" role="status" aria-live="polite" aria-atomic="true" class="mensaje mt-5 border-l-2 pl-4 text-sm">Sin reservas.</p>
+      </aside>
+      <noscript>Activa JavaScript para consultar y reservar asientos.</noscript>
     </main>
+    <footer class="mx-auto max-w-6xl border-t border-neutral-200 px-4 py-5 text-xs text-neutral-500 sm:px-8">Cinema Seat Manager &middot; Sala 01</footer>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
