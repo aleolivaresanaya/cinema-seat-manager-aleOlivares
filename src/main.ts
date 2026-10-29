@@ -86,28 +86,120 @@ function buscarAsientosContiguos(sala: number[][]): number[][] | null {
   return null;
 }
 
-const sala = inicializarSala();
-console.log("Sala vacia (L = libre, X = ocupado):");
-mostrarSala(sala);
-
-console.log(reservarAsiento(sala, 3, 5));
-console.log(reservarAsiento(sala, 3, 5));
-console.log(reservarAsiento(sala, 9, 1));
-
-console.log("Sala final:");
-mostrarSala(sala);
-
-const [ocupados, disponibles] = contarAsientos(sala);
-console.log(`Asientos ocupados: ${ocupados}`);
-console.log(`Asientos disponibles: ${disponibles}`);
-
-const asientosContiguos = buscarAsientosContiguos(sala);
-if (asientosContiguos !== null) {
-  console.log(
-    `Asientos contiguos disponibles: fila ${asientosContiguos[0][0]}, columna ${asientosContiguos[0][1]} y fila ${asientosContiguos[1][0]}, columna ${asientosContiguos[1][1]}.`
-  );
-} else {
-  console.log("No hay dos asientos contiguos disponibles.");
+// Compara un resultado real con el esperado e indica si la comprobacion paso.
+function comprobarResultado(descripcion: string, real: string, esperado: string): void {
+  const resultado = real === esperado ? "PASO" : "FALLO";
+  console.log(`${resultado}: ${descripcion}. Real: ${real}. Esperado: ${esperado}.`);
 }
+
+// Muestra un escenario y comprueba sus conteos, su primer par y que buscar no cambie la sala.
+function comprobarEscenario(
+  nombre: string,
+  sala: number[][],
+  ocupadosEsperados: number,
+  disponiblesEsperados: number,
+  parEsperado: number[][] | null
+): void {
+  console.log(`\n${nombre} (L = libre, X = ocupado):`);
+  mostrarSala(sala);
+
+  const [ocupados, disponibles] = contarAsientos(sala);
+  console.log(`Asientos ocupados: ${ocupados}`);
+  console.log(`Asientos disponibles: ${disponibles}`);
+  comprobarResultado("Cantidad de ocupados", String(ocupados), String(ocupadosEsperados));
+  comprobarResultado("Cantidad de disponibles", String(disponibles), String(disponiblesEsperados));
+
+  const salaAntes = JSON.stringify(sala);
+  const parEncontrado = buscarAsientosContiguos(sala);
+  if (parEncontrado !== null) {
+    console.log(`Primer par contiguo disponible: ${JSON.stringify(parEncontrado)}`);
+  } else {
+    console.log("No hay dos asientos contiguos disponibles en la misma fila.");
+  }
+  comprobarResultado("Primer par libre", JSON.stringify(parEncontrado), JSON.stringify(parEsperado));
+  comprobarResultado(
+    "La busqueda no modifica la sala",
+    String(JSON.stringify(sala) === salaAntes),
+    "true"
+  );
+}
+
+// Comprueba el mensaje de rechazo y que todos los asientos conserven sus valores.
+function comprobarReservaRechazada(
+  sala: number[][],
+  fila: number,
+  columna: number,
+  mensajeEsperado: string
+): void {
+  const salaAntes = JSON.stringify(sala);
+  const mensaje = reservarAsiento(sala, fila, columna);
+  comprobarResultado(`Rechazo de reserva (${fila}, ${columna})`, mensaje, mensajeEsperado);
+  comprobarResultado(
+    `Reserva rechazada (${fila}, ${columna}) sin modificar la sala`,
+    String(JSON.stringify(sala) === salaAntes),
+    "true"
+  );
+}
+
+// Escenario 1: una sala nueva tiene los 80 asientos disponibles.
+const salaVacia = inicializarSala();
+comprobarEscenario("1. Sala vacia", salaVacia, 0, 80, [[1, 1], [1, 2]]);
+
+// Escenario 2: dos reservas validas y varios intentos que deben rechazarse.
+const salaParcial = inicializarSala();
+console.log("\nReservas y validaciones de la sala parcialmente ocupada:");
+comprobarResultado(
+  "Reserva (1, 1)",
+  reservarAsiento(salaParcial, 1, 1),
+  "Reserva confirmada: fila 1, columna 1."
+);
+comprobarResultado(
+  "Reserva (1, 2)",
+  reservarAsiento(salaParcial, 1, 2),
+  "Reserva confirmada: fila 1, columna 2."
+);
+comprobarReservaRechazada(
+  salaParcial, 1, 1,
+  "El asiento de la fila 1, columna 1 ya esta ocupado."
+);
+
+const coordenadasInvalidas = [[0, 1], [9, 1], [1, 0], [1, 11], [1.5, 1], [1, 2.5]];
+for (let indice = 0; indice < coordenadasInvalidas.length; indice++) {
+  comprobarReservaRechazada(
+    salaParcial,
+    coordenadasInvalidas[indice][0],
+    coordenadasInvalidas[indice][1],
+    "Posicion invalida: indica una fila entera del 1 al 8 y una columna entera del 1 al 10."
+  );
+}
+comprobarEscenario("2. Sala parcialmente ocupada", salaParcial, 2, 78, [[1, 3], [1, 4]]);
+
+// Escenario 3: los dos asientos libres estan en filas distintas, sin formar un par.
+const salaCasiLlena = inicializarSala();
+for (let fila = 0; fila < NUMERO_FILAS; fila++) {
+  for (let columna = 0; columna < NUMERO_COLUMNAS; columna++) {
+    if (!((fila === 0 && columna === 9) || (fila === 1 && columna === 0))) {
+      salaCasiLlena[fila][columna] = 1;
+    }
+  }
+}
+comprobarEscenario("3. Sala casi llena", salaCasiLlena, 78, 2, null);
+
+// Escenario 4: todos los asientos estan ocupados y no se aceptan nuevas reservas.
+const salaLlena = inicializarSala();
+for (let fila = 0; fila < NUMERO_FILAS; fila++) {
+  for (let columna = 0; columna < NUMERO_COLUMNAS; columna++) {
+    salaLlena[fila][columna] = 1;
+  }
+}
+comprobarReservaRechazada(
+  salaLlena, 1, 1,
+  "El asiento de la fila 1, columna 1 ya esta ocupado."
+);
+comprobarReservaRechazada(
+  salaLlena, 8, 10,
+  "El asiento de la fila 8, columna 10 ya esta ocupado."
+);
+comprobarEscenario("4. Sala llena", salaLlena, 80, 0, null);
 
 export {};
